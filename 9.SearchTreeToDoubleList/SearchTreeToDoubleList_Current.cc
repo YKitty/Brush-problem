@@ -47,30 +47,53 @@ void PrevOrder(Node* root)
   PrevOrder(root->_right);
 }
 
-void SearchToVector(std::vector<Node*>& v_node, Node* root)
+void Convert(Node* root, Node** tail_node)
+{
+  if (root == NULL)
+  {
+    return;
+  }
+  Node* cur_node = root;
+
+  if (cur_node->_left != NULL)
+  {
+    Convert(cur_node->_left, tail_node);
+  }
+
+  //让一个结点的左指针指向前一个节点
+  cur_node->_left = *tail_node;
+  if (*tail_node != NULL)
+  {
+    (*tail_node)->_right = cur_node;
+  }
+
+  *tail_node = cur_node;
+
+  if (cur_node->_right != NULL)
+  {
+    Convert(cur_node->_right, tail_node);
+  }
+
+
+}
+
+void SearchTreeToDoubleList(Node** root)
 {
   if (root == NULL)
   {
     return ;
   }
-  SearchToVector(v_node, root->_left);
-  v_node.push_back(root);
-  SearchToVector(v_node, root->_right);
-}
 
-void VectorToDoubleList(Node** root, std::vector<Node*>& v_node)
-{
-  *root = v_node[0];
-  v_node[0]->_right = v_node[1];
-  v_node[0]->_left = NULL;
-  for (auto i = 1; i < v_node.size() - 1; i++)
+  Node* tail_node = NULL;
+  Convert(*root, &tail_node);
+  
+  Node* head_node = tail_node;
+  while (head_node != NULL && head_node->_left != NULL)
   {
-    v_node[i]->_right = v_node[i + 1];
-    v_node[i]->_left = v_node[i - 1];
+    head_node = head_node->_left;
   }
 
-  v_node[v_node.size() - 1]->_left = v_node[v_node.size() - 2];
-  v_node[v_node.size() - 1]->_right = NULL;
+  *root = head_node;
 }
 
 int main()
@@ -78,22 +101,12 @@ int main()
   Node* root = CreateSearchTree();
   PrevOrder(root);
   std::cout << "\n*********************\n";
-
-  std::vector<Node*> v_node;
-  SearchToVector(v_node, root);
-  for (auto i = 0; i < v_node.size(); i++)
-  {
-    std::cout << v_node[i]->_data;
-  }
-  std::cout << "\n*********************\n";
-
-  //这里需要传递root的地址，因为要改变这个root指针
-  VectorToDoubleList(&root, v_node);  
+  
+  SearchTreeToDoubleList(&root);
   while (root)
-  { 
-    std::cout << root->_data;
+  {
+    std::cout << root->_data << std::endl;
     root = root->_right;
   }
-  std::cout << "\n*********************\n";
   return 0;
 }
